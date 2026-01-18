@@ -31,41 +31,17 @@ class ClaudeCodeNotifier < Formula
     chmod 0755, libexec/"uninstall.sh"
   end
 
-  def post_install
-    # Try to configure hooks automatically, but don't fail if it errors
-    # (e.g., if Claude Code is running and the file is locked)
-    system libexec/"install.sh", "-y"
-  end
-
   def caveats
-    settings_file = Pathname.new(Dir.home)/".claude"/"settings.json"
-    
-    if settings_file.exist? && settings_file.read.include?("claude-code-notify")
-      <<~EOS
-        ✅ Hooks have been configured in ~/.claude/settings.json
+    <<~EOS
+      To complete setup, close Claude Code and run:
+        #{libexec}/install.sh
 
-        Test notification:
-          echo '{"hook_event_name":"Notification","message":"Hello!"}' | claude-code-notify
+      Test notification:
+        echo '{"hook_event_name":"Notification","message":"Hello!"}' | claude-code-notify
 
-        Restart Claude Code for changes to take effect.
-
-        ⚠️  Before uninstalling, run:
-          #{libexec}/uninstall.sh
-      EOS
-    else
-      <<~EOS
-        ⚠️  Auto-configuration failed (Claude Code may be running).
-        
-        To complete setup manually, close Claude Code and run:
-          #{libexec}/install.sh
-
-        Test notification:
-          echo '{"hook_event_name":"Notification","message":"Hello!"}' | claude-code-notify
-
-        ⚠️  Before uninstalling, run:
-          #{libexec}/uninstall.sh
-      EOS
-    end
+      ⚠️  Before uninstalling, run:
+        #{libexec}/uninstall.sh
+    EOS
   end
 
   test do
