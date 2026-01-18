@@ -32,25 +32,40 @@ class ClaudeCodeNotifier < Formula
   end
 
   def post_install
-    # Configure hooks in non-interactive mode
-    # The install.sh script will auto-detect HOMEBREW_PREFIX
+    # Try to configure hooks automatically, but don't fail if it errors
+    # (e.g., if Claude Code is running and the file is locked)
     system libexec/"install.sh", "-y"
   end
 
   def caveats
-    <<~EOS
-      ✅ Hooks have been configured in ~/.claude/settings.json
+    settings_file = Pathname.new(Dir.home)/".claude"/"settings.json"
+    
+    if settings_file.exist? && settings_file.read.include?("claude-code-notify")
+      <<~EOS
+        ✅ Hooks have been configured in ~/.claude/settings.json
 
-      Test notification:
-        echo '{"hook_event_name":"Notification","message":"Hello!"}' | claude-code-notify
+        Test notification:
+          echo '{"hook_event_name":"Notification","message":"Hello!"}' | claude-code-notify
 
-      Restart Claude Code for changes to take effect.
+        Restart Claude Code for changes to take effect.
 
-      ⚠️  Before uninstalling, run:
-        #{libexec}/uninstall.sh
+        ⚠️  Before uninstalling, run:
+          #{libexec}/uninstall.sh
+      EOS
+    else
+      <<~EOS
+        ⚠️  Auto-configuration failed (Claude Code may be running).
+        
+        To complete setup manually, close Claude Code and run:
+          #{libexec}/install.sh
 
-      Or manually remove the hooks from ~/.claude/settings.json
-    EOS
+        Test notification:
+          echo '{"hook_event_name":"Notification","message":"Hello!"}' | claude-code-notify
+
+        ⚠️  Before uninstalling, run:
+          #{libexec}/uninstall.sh
+      EOS
+    end
   end
 
   test do
